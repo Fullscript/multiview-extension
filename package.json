@@ -1,7 +1,7 @@
 {
   "name": "multiview",
   "displayName": "multiview",
-  "description": "Allows multiple views into a project",
+  "description": "Multiple views of your codebase",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.75.0"
@@ -12,7 +12,7 @@
   "activationEvents": [
     "onCommand:multiview.helloWorld"
   ],
-  "main": "./dist/extension.js",
+  "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
@@ -22,13 +22,10 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "yarn run package",
-    "compile": "webpack",
-    "watch": "webpack --watch",
-    "package": "webpack --mode production --devtool hidden-source-map",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "yarn run compile-tests && yarn run compile && yarn run lint",
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js"
   },
@@ -43,9 +40,6 @@
     "glob": "^8.1.0",
     "mocha": "^10.1.0",
     "typescript": "^4.9.4",
-    "ts-loader": "^9.4.2",
-    "webpack": "^5.75.0",
-    "webpack-cli": "^5.0.1",
     "@vscode/test-electron": "^2.2.2"
   }
 }
