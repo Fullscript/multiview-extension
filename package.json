@@ -10,7 +10,6 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:multiview.helloWorld"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -19,7 +18,15 @@
         "command": "multiview.helloWorld",
         "title": "Hello World"
       }
-    ]
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "multiView",
+          "name": "Multi-view"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
