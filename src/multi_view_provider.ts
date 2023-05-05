@@ -2,8 +2,55 @@ import * as vscode from 'vscode'
 import * as fs from 'fs'
 import * as path from 'path'
 
+
+class FileNode {
+    constructor(public fileName: string, public isDir: boolean, public absolutePath: string, public contents: FileNode[] = []) {
+
+    }
+}
+
+
 export class MultiViewProvider implements vscode.TreeDataProvider<ViewItem> {
-    constructor(private workspaceRoot: string) {}
+
+    originalStructure: FileNode[] = []
+    newStructure: FileNode[] = []
+
+    constructor(private workspaceRoot: string) {
+        // this.originalStructure = []
+        // this.newStructure = {}
+    }
+
+    populateStructure(workspaceRoot: string) {
+        this.originalStructure = this.getStructure(workspaceRoot)
+        debugger
+    }
+
+    getStructure(absoluteRoot: string) {
+
+        let files = fs.readdirSync(absoluteRoot)
+        let structure: FileNode[] = []
+        structure = files.map((fileName) => {
+            let absolutePath = path.join(absoluteRoot, fileName)
+            let isDir = fs.statSync(absolutePath).isDirectory() ? 1 : 0
+            return {fileName, isDir, absolutePath}
+        }).sort((a, b) => {
+            let diff = b.isDir - a.isDir
+            if (diff != 0) {
+                return diff
+            } else {
+                return a.fileName < b.fileName ? -1 : 1
+            }
+        }).filter((result) => {
+            return result.fileName != 'node_modules'
+        }).map((result) => {
+            if (result.isDir) {
+                return new FileNode(result.fileName, !!result.isDir, result.absolutePath, this.getStructure(result.absolutePath))
+            } else {
+                return new FileNode(result.fileName, !!result.isDir, result.absolutePath)
+            }
+        })
+        return structure
+    }
 
     getTreeItem(element: ViewItem): vscode.TreeItem {
         return element
@@ -13,6 +60,10 @@ export class MultiViewProvider implements vscode.TreeDataProvider<ViewItem> {
         if (!this.workspaceRoot) {
             vscode.window.showInformationMessage('Empty workspace means no multiview fo you!')
             return Promise.resolve([])
+        }
+
+        if (!element) {
+            this.populateStructure(this.workspaceRoot)
         }
         
         let dir = !element ? '' : path.join(element.dir, element.label)
