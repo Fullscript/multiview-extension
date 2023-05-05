@@ -14,33 +14,43 @@ export class MultiViewProvider implements vscode.TreeDataProvider<ViewItem> {
             vscode.window.showInformationMessage('Empty workspace means no multiview fo you!')
             return Promise.resolve([])
         }
-        vscode.window.showInformationMessage('You haz a workspace!')
-        let stuff = fs.readdirSync(this.workspaceRoot)
+        
+        let dir = !element ? '' : path.join(element.dir, element.label)
+
+        // vscode.window.showInformationMessage('You haz a workspace!')
+        let absolutePath = path.join(this.workspaceRoot,dir)
+        console.log({absolutePath})
+        let stuff = fs.readdirSync(absolutePath)
         
         return Promise.resolve(stuff.map((fileName) => {
-            let isDirectory = fs.statSync(path.join(this.workspaceRoot, fileName)).isDirectory()
-            let state = isDirectory ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None
-            return {fileName, state}
-            // console.log({fileName, state})
-            // return new ViewItem(fileName, state)
+            let isDir = fs.statSync(path.join(this.workspaceRoot, dir, fileName)).isDirectory() ? 1 : 0
+            return {fileName, isDir}
         }).sort((a, b) => {
-            let diff = b.state - a.state
+            let diff = b.isDir - a.isDir
             if (diff != 0) {
                 return diff
             } else {
                 return a.fileName < b.fileName ? -1 : 1
             }
         }).map((result) => {
-            return new ViewItem(result.fileName, result.state)
-        })
-        )
+            return new ViewItem(dir, result.fileName, !!result.isDir)
+        }))
     }
 
 }
 
 
 class ViewItem extends vscode.TreeItem {
-    constructor(label: string | vscode.TreeItemLabel, collapsibleState?: vscode.TreeItemCollapsibleState) {
+
+
+    constructor(
+        public dir: string,
+        public label: string, 
+        public isDir: boolean = false,
+        public contents: ViewItem[] = []
+    ) {
+        // let label = path.split("/").at(-1) || ""
+        let collapsibleState = isDir ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None
         super(label, collapsibleState)
     }
 }
