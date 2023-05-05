@@ -3,104 +3,142 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 
-class FileNode {
-    constructor(public fileName: string, public isDir: boolean, public absolutePath: string, public contents: FileNode[] = []) {
 
+class FileConversion {
+    constructor(public fromPattern: RegExp, public toPattern: string) {
+        
+    }
+
+    apply(file: string): string {
+        return file.replace(this.fromPattern, this.toPattern)
     }
 }
 
 
-export class MultiViewProvider implements vscode.TreeDataProvider<ViewItem> {
+export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
 
-    originalStructure: FileNode[] = []
-    newStructure: FileNode[] = []
+    newItems: FileItem[] = []
+    conversions = [new FileConversion(/spec\/(.*)/, 'app/$1')]
 
     constructor(private workspaceRoot: string) {
-        // this.originalStructure = []
-        // this.newStructure = {}
     }
+
+    applyConversions(origFlatFiles: string[], conversions: FileConversion[]): FileItem[] {
+        let fileMap: any = {}
+        let newFlatFiles: string[] = []
+
+        origFlatFiles.forEach(path => {
+            let newPath = conversions[0].apply(path)
+            newFlatFiles.push(newPath)
+        })
+        debugger
+        newFlatFiles.forEach(path => {
+            this.digSet(fileMap, path.split("/"), path)
+        })
+
+        let rootNode = new FileItem('', this.workspaceRoot, undefined, true)
+        rootNode.children = this.fileMapToGraph(fileMap, rootNode)
+
+        return rootNode.children
+    }
+
+    fileMapToGraph(fileMap: any, parent: FileItem): FileItem[] {
+        let result: FileItem[] = []
+        for (let key in fileMap) {
+            if (typeof fileMap[key] === 'string') {
+                let path = fileMap[key]
+                result.push(new FileItem(path, '???', parent))
+            } else {
+                // TODO: key is not the full relative path
+                let item = new FileItem(key, '???', parent, true)
+                item.children = this.fileMapToGraph(fileMap[key], item)
+                result.push(item)
+            }
+        }
+
+        return result
+    }
+
+
+    digSet(obj: any, keys: string[], value: any) {
+        let key = keys.shift() || ''
+        if (keys.length == 0) {
+            obj[key] = value
+        } else {
+            let nextObj = obj[key] || {}
+            obj[key] = nextObj
+            this.digSet(nextObj, keys, value)
+        }
+    }
+
 
     populateStructure(workspaceRoot: string) {
-        this.originalStructure = this.getStructure(workspaceRoot)
-        debugger
+        let origFlatFiles = this.getFlatFiles(workspaceRoot)
+        this.newItems = this.applyConversions(origFlatFiles, this.conversions)
     }
 
-    getStructure(absoluteRoot: string) {
-
-        let files = fs.readdirSync(absoluteRoot)
-        let structure: FileNode[] = []
-        structure = files.map((fileName) => {
-            let absolutePath = path.join(absoluteRoot, fileName)
-            let isDir = fs.statSync(absolutePath).isDirectory() ? 1 : 0
-            return {fileName, isDir, absolutePath}
-        }).sort((a, b) => {
-            let diff = b.isDir - a.isDir
-            if (diff != 0) {
-                return diff
+    getFlatFiles(absoluteRoot: string, dir: string = ''): string[] {
+        let files = fs.readdirSync(path.join(absoluteRoot, dir))
+        let result: string[] = []
+        files.filter((fileName) => {
+            return fileName != 'node_modules' && fileName[0] != '.'
+        }).forEach((fileName) => {
+            let absolutePath = path.join(absoluteRoot, dir, fileName)
+            let isDir = fs.statSync(absolutePath).isDirectory()
+            if (!isDir) {
+                result.push(path.join(dir, fileName))
             } else {
-                return a.fileName < b.fileName ? -1 : 1
-            }
-        }).filter((result) => {
-            return result.fileName != 'node_modules'
-        }).map((result) => {
-            if (result.isDir) {
-                return new FileNode(result.fileName, !!result.isDir, result.absolutePath, this.getStructure(result.absolutePath))
-            } else {
-                return new FileNode(result.fileName, !!result.isDir, result.absolutePath)
+                result.push(...this.getFlatFiles(absoluteRoot, path.join(dir, fileName)))
             }
         })
-        return structure
+        return result.sort()
     }
 
-    getTreeItem(element: ViewItem): vscode.TreeItem {
+
+    getTreeItem(element: FileItem): vscode.TreeItem {
         return element
     }
 
-    getChildren(element?: ViewItem): Thenable<ViewItem[]> {
+    getChildren(element?: FileItem): Thenable<FileItem[]> {
         if (!this.workspaceRoot) {
             vscode.window.showInformationMessage('Empty workspace means no multiview fo you!')
             return Promise.resolve([])
         }
 
+        let children: FileItem[]
         if (!element) {
             this.populateStructure(this.workspaceRoot)
+            children = this.newItems
+        } else {
+            children = element.children
         }
-        
-        let dir = !element ? '' : path.join(element.dir, element.label)
 
-        // vscode.window.showInformationMessage('You haz a workspace!')
-        let absolutePath = path.join(this.workspaceRoot,dir)
-        console.log({absolutePath})
-        let stuff = fs.readdirSync(absolutePath)
-        
-        return Promise.resolve(stuff.map((fileName) => {
-            let isDir = fs.statSync(path.join(this.workspaceRoot, dir, fileName)).isDirectory() ? 1 : 0
-            return {fileName, isDir}
-        }).sort((a, b) => {
-            let diff = b.isDir - a.isDir
-            if (diff != 0) {
-                return diff
+        children = children.sort((a, b) => {
+            if (a.isDir !== b.isDir) {
+                return a.isDir ? -1 : 1
             } else {
-                return a.fileName < b.fileName ? -1 : 1
+                return (a.label || '') < (b.label || '') ? -1 : 1
             }
-        }).map((result) => {
-            return new ViewItem(dir, result.fileName, !!result.isDir)
-        }))
+        })
+
+
+        return Promise.resolve(children)
+        
     }
 
 }
 
 
-class ViewItem extends vscode.TreeItem {
-
+class FileItem extends vscode.TreeItem {
 
     constructor(
-        public dir: string,
-        public label: string, 
+        newPath: string,
+        public origAbsolutePath: string,
+        public parent?: FileItem,
         public isDir: boolean = false,
-        public contents: ViewItem[] = []
+        public children: FileItem[] = []
     ) {
-        // let label = path.split("/").at(-1) || ""
+        let label = newPath.split("/").at(-1) || ""
         let collapsibleState = isDir ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None
         super(label, collapsibleState)
     }
