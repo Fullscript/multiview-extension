@@ -4,6 +4,8 @@ import * as path from 'path'
 
 
 
+
+
 class FileConversion {
     constructor(public fromPattern: RegExp, public toPattern: string) {
         
@@ -14,6 +16,9 @@ class FileConversion {
     }
 }
 
+// export class Whatever implements vscode.FileSystemProvider<FileItem> {
+
+// }
 
 export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
 
@@ -25,15 +30,15 @@ export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
 
     applyConversions(origFlatFiles: string[], conversions: FileConversion[]): FileItem[] {
         let fileMap: any = {}
-        let newFlatFiles: string[] = []
+        let newFlatFiles: string[][] = []
 
         origFlatFiles.forEach(path => {
             let newPath = conversions[0].apply(path)
-            newFlatFiles.push(newPath)
+            newFlatFiles.push([path, newPath])
         })
-        debugger
-        newFlatFiles.forEach(path => {
-            this.digSet(fileMap, path.split("/"), path)
+        
+        newFlatFiles.forEach(paths => {
+            this.digSet(fileMap, paths[1].split("/"), paths)
         })
 
         let rootNode = new FileItem('', this.workspaceRoot, undefined, true)
@@ -45,17 +50,18 @@ export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
     fileMapToGraph(fileMap: any, parent: FileItem): FileItem[] {
         let result: FileItem[] = []
         for (let key in fileMap) {
-            if (typeof fileMap[key] === 'string') {
-                let path = fileMap[key]
-                result.push(new FileItem(path, '???', parent))
+            if (Array.isArray(fileMap[key])) {
+                let paths = fileMap[key]
+                result.push(new FileItem(paths[1], path.join(this.workspaceRoot, paths[0]), parent))
             } else {
-                // TODO: key is not the full relative path
-                let item = new FileItem(key, '???', parent, true)
-                item.children = this.fileMapToGraph(fileMap[key], item)
-                result.push(item)
+                let newPath = path.join(parent.newPath, key)
+                // TODO: the orignal absolute path for a folder doesn't exist
+                let folder = new FileItem(newPath, key, parent, true)
+                folder.children = this.fileMapToGraph(fileMap[key], folder)
+                result.push(folder)
             }
         }
-
+        // TODO: sort here
         return result
     }
 
@@ -117,13 +123,11 @@ export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
             if (a.isDir !== b.isDir) {
                 return a.isDir ? -1 : 1
             } else {
-                return (a.label || '') < (b.label || '') ? -1 : 1
+                return (a.newPath || '') < (b.newPath || '') ? -1 : 1
             }
         })
 
-
         return Promise.resolve(children)
-        
     }
 
 }
@@ -132,14 +136,14 @@ export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
 class FileItem extends vscode.TreeItem {
 
     constructor(
-        newPath: string,
-        public origAbsolutePath: string,
+        public newPath: string, // Relative path to new location
+        public origAbsolutePath: string, // Absolute path of orignal file if it's a file
         public parent?: FileItem,
         public isDir: boolean = false,
         public children: FileItem[] = []
     ) {
-        let label = newPath.split("/").at(-1) || ""
         let collapsibleState = isDir ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None
-        super(label, collapsibleState)
+        // TODO: get this to work if fileName has been changed
+        super(vscode.Uri.parse(origAbsolutePath), collapsibleState)
     }
 }
