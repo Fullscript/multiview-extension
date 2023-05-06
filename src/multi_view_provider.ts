@@ -6,20 +6,6 @@ import * as path from 'path'
 
 
 
-class FileConversion {
-    constructor(public fromPattern: RegExp, public toPattern: string) {
-        
-    }
-
-    apply(file: string): string {
-        return file.replace(this.fromPattern, this.toPattern)
-    }
-}
-
-// export class Whatever implements vscode.FileSystemProvider<FileItem> {
-
-// }
-
 export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
 
     newItems: FileItem[] = []
@@ -27,6 +13,37 @@ export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
 
     constructor(private workspaceRoot: string) {
     }
+
+    getTreeItem(element: FileItem): vscode.TreeItem {
+        return element
+    }
+
+    getChildren(element?: FileItem): Thenable<FileItem[]> {
+        if (!this.workspaceRoot) {
+            vscode.window.showInformationMessage('Empty workspace means no multiview fo you!')
+            return Promise.resolve([])
+        }
+
+        let children: FileItem[]
+        if (!element) {
+            this.populateStructure(this.workspaceRoot)
+            children = this.newItems
+        } else {
+            children = element.children
+        }
+
+        // children = children.sort((a, b) => {
+        //     if (a.isDir !== b.isDir) {
+        //         return a.isDir ? -1 : 1
+        //     } else {
+        //         return (a.newPath || '') < (b.newPath || '') ? -1 : 1
+        //     }
+        // })
+
+        return Promise.resolve(children)
+    }
+
+    // Private methods below 
 
     applyConversions(origFlatFiles: string[], conversions: FileConversion[]): FileItem[] {
         let fileMap: any = {}
@@ -61,10 +78,17 @@ export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
                 result.push(folder)
             }
         }
-        // TODO: sort here
+
+        result = result.sort((a, b) => {
+            if (a.isDir !== b.isDir) {
+                return a.isDir ? -1 : 1
+            } else {
+                return (a.newPath || '') < (b.newPath || '') ? -1 : 1
+            }
+        })
+
         return result
     }
-
 
     digSet(obj: any, keys: string[], value: any) {
         let key = keys.shift() || ''
@@ -76,7 +100,6 @@ export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
             this.digSet(nextObj, keys, value)
         }
     }
-
 
     populateStructure(workspaceRoot: string) {
         let origFlatFiles = this.getFlatFiles(workspaceRoot)
@@ -101,37 +124,9 @@ export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
     }
 
 
-    getTreeItem(element: FileItem): vscode.TreeItem {
-        return element
-    }
-
-    getChildren(element?: FileItem): Thenable<FileItem[]> {
-        if (!this.workspaceRoot) {
-            vscode.window.showInformationMessage('Empty workspace means no multiview fo you!')
-            return Promise.resolve([])
-        }
-
-        let children: FileItem[]
-        if (!element) {
-            this.populateStructure(this.workspaceRoot)
-            children = this.newItems
-        } else {
-            children = element.children
-        }
-
-        children = children.sort((a, b) => {
-            if (a.isDir !== b.isDir) {
-                return a.isDir ? -1 : 1
-            } else {
-                return (a.newPath || '') < (b.newPath || '') ? -1 : 1
-            }
-        })
-
-        return Promise.resolve(children)
-    }
+   
 
 }
-
 
 class FileItem extends vscode.TreeItem {
 
@@ -144,6 +139,37 @@ class FileItem extends vscode.TreeItem {
     ) {
         let collapsibleState = isDir ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None
         // TODO: get this to work if fileName has been changed
-        super(vscode.Uri.parse(origAbsolutePath), collapsibleState)
+        super(vscode.Uri.parse(newPath), collapsibleState)
+        
+        if (this.isDir) {
+            this.tooltip = undefined
+        } else {
+            this.tooltip = this.origAbsolutePath
+            this.command = new MyCommand('open', 'vscode.open','open', [this.origAbsolutePath])
+        }
+    }
+
+}
+
+
+class FileConversion {
+    constructor(public fromPattern: RegExp, public toPattern: string) {
+    }
+
+    apply(file: string): string {
+        return file.replace(this.fromPattern, this.toPattern)
+    }
+}
+
+class MyCommand implements vscode.Command {
+    arguments: any[] = []
+
+    constructor(
+        public title: string, 
+        public command: string, 
+        public tooltip?: string,
+        args: any[] = []
+    ) {
+        this.arguments = args
     }
 }
