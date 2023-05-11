@@ -1,20 +1,13 @@
-# multiview README
+# MultiView
 
-This is the README for your extension "multiview". After writing up a brief description, we recommend including the following sections.
+This VS Code extension allows you to remap the files in your codebase, and show an alternative view without having to physically move the files. This can be useful to componentize your layered code or flatten your components to see all similar files in one place.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+MultiView is configured with regular expression and replacement string pairs. You can configure multiple views, and each view can apply multiple replacements.
 
-For example if there is an image subfolder under your extension project workspace:
+<!-- TODO: add examples here -->
 
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
 
 ## Extension Settings
 
@@ -24,48 +17,38 @@ For example:
 
 This extension contributes the following settings:
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+* `multiview.conversions`: Named views with regular expression replacements to convert one file system "schema" to another. (See examples below)
+
+
+```json
+// Expected format
+"multiview.conversions": {
+  "<categoryName>": [["<regex1>", "<replacement1>"], ["<regex2>", "<replacement2>"], ...],
+  "<otherCategoryName>": [...]
+}
+// Example
+"multiview.conversions": {
+  // Moves specs from the spec folder to the app folder
+  "adjacentSpecs": [["spec/(.*)", "app/$1"]],
+  // Creates a folder for each html page with the matching css and js files
+  "componentize": [
+    ["src/views/(.*)\\.html", "src/components/$1/$1.html"],
+    ["src/styles/(.*)\\.css", "src/components/$1/$1.css"],
+    ["src/js/(.*)\\.js", "src/components/$1/$1.js"]
+  ]
+}
+```
+
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+Only the first named conversion is used. 
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 0.1.0
 
-### 1.0.0
+Initial release of MultiView. Only a single conversion is supported.
 
-Initial release of ...
 
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+<!-- TODO: Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension. (https://code.visualstudio.com/api/references/extension-guidelines) -->
