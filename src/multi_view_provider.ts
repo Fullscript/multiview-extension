@@ -13,7 +13,6 @@ export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
 
     constructor(private workspaceRoot: string) {
         this.conversions = Object.values(this.validateConversions(vscode.workspace.getConfiguration('multiView.conversions')))[0]
-        debugger
     }
 
     validateConversions(input: any) {
@@ -73,13 +72,17 @@ export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
 
     applyConversions(origFlatFiles: string[], conversions: FileConversion[]): FileItem[] {
         let fileMap: any = {}
-        let newFlatFiles: string[][] = []
-
-        origFlatFiles.forEach(path => {
-            let newPath = conversions[0].apply(path)
-            newFlatFiles.push([path, newPath])
+        let newFlatFiles: string[][] = origFlatFiles.map((path) => {
+            return [path, path]
         })
-        
+
+        conversions.forEach((conversion) => {
+            newFlatFiles = newFlatFiles.map(([origPath, newerPath]) => {
+                let newPath = conversion.apply(newerPath)
+                return [origPath, newPath]
+            })
+        })
+
         newFlatFiles.forEach(paths => {
             this.digSet(fileMap, paths[1].split("/"), paths)
         })
