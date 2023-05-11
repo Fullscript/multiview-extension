@@ -19,6 +19,18 @@
         "title": "Hello World"
       }
     ],
+    "configuration": {
+      "title": "MultiView",
+      "type": "object",
+      "properties": {
+        "multiView.conversions": {
+          "title": "Conversions",
+          "markdownDescription": "List of regular expressions for converting from one file system schema to another. Should be of the format:\n\n```json\n\"multiview.conversions\": {\n  \"<categoryName>\": [[\"<regex1>\", \"<replacement1>\"], [\"<regex2>\", \"<replacement2>\"], ...],\n  \"<otherCategoryName>\": [...]\n}\n// Example\n\"multiview.conversions\": {\n  \"adjacentSpecs\": [[\"spec/(.*)\", \"app/$1\"]],\n  \"componentize\": [\n    [\"src/views/(.*)\\\\.html\", \"src/components/$1/$1.html\"],\n    [\"src/styles/(.*)\\\\.css\", \"src/components/$1/$1.css\"],\n    [\"src/js/(.*)\\\\.js\", \"src/components/$1/$1.js\"]\n  ]\n}\n```",
+          "type": "object",
+          "default": {"adjacentSpecs": [["spec/(.*)", "app/$1"]]}
+        }
+      }
+    },
     "views": {
       "explorer": [
         {

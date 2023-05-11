@@ -9,9 +9,43 @@ import * as path from 'path'
 export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
 
     newItems: FileItem[] = []
-    conversions = [new FileConversion(/spec\/(.*)/, 'app/$1')]
+    conversions: FileConversion[] = []
 
     constructor(private workspaceRoot: string) {
+        this.conversions = Object.values(this.validateConversions(vscode.workspace.getConfiguration('multiView.conversions')))[0]
+        debugger
+    }
+
+    validateConversions(input: any) {
+        let result: {[index: string]: FileConversion[]} = {}
+        let isObject = (typeof input === 'object' && !Array.isArray(input) && input !== null)
+        if (!isObject) {
+            vscode.window.showWarningMessage("multiView.conversions is not an object. MultiView will not work.")
+            return {}
+        }
+        let errors: {invalidCategories: string[]} = {invalidCategories: []}
+        for (let key in input) {
+            if (typeof input[key] === 'function') continue
+            let conversionList = input[key]
+            if (!Array.isArray(conversionList)) {
+                errors.invalidCategories.push(key)
+                continue
+            }
+            conversionList.forEach((conversion) => {
+                let [fromPattern, toPattern] = conversion
+                if (typeof fromPattern !== 'string' || typeof toPattern !== 'string') {
+                    errors.invalidCategories.push(key)
+                    return
+                }
+                result[key] ||= []
+                result[key].push(new FileConversion(new RegExp(fromPattern), toPattern))
+            })
+        }
+
+        if (errors.invalidCategories.length > 0) {
+            vscode.window.showWarningMessage(`Unable to parse categories: ${errors.invalidCategories.join(', ')}`)
+        }
+        return result
     }
 
     getTreeItem(element: FileItem): vscode.TreeItem {
@@ -31,14 +65,6 @@ export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
         } else {
             children = element.children
         }
-
-        // children = children.sort((a, b) => {
-        //     if (a.isDir !== b.isDir) {
-        //         return a.isDir ? -1 : 1
-        //     } else {
-        //         return (a.newPath || '') < (b.newPath || '') ? -1 : 1
-        //     }
-        // })
 
         return Promise.resolve(children)
     }
