@@ -42,7 +42,7 @@ This extension contributes the following settings:
 
 ## Known Issues
 
-Only the first named conversion is used. 
+Selecting a category is done using a QuickPick until we can create a dynamic menu
 
 ## Release Notes
 
@@ -56,5 +56,11 @@ Only the first named conversion is used.
 
 Initial release of MultiView. Only a single conversion is supported.
 
+
+# Development
+
+## How to build
+
+Run `vsce package`
 
 <!-- TODO: Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension. (https://code.visualstudio.com/api/references/extension-guidelines) -->
