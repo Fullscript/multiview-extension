@@ -20,7 +20,7 @@ This extension contributes the following settings:
 * `multiview.conversions`: Named views with regular expression replacements to convert one file system "schema" to another. (See examples below)
 
 
-```json
+```js
 // Expected format
 "multiview.conversions": {
   "<categoryName>": [["<regex1>", "<replacement1>"], ["<regex2>", "<replacement2>"], ...],
