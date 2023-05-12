@@ -9,11 +9,60 @@ import * as path from 'path'
 export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
 
     newItems: FileItem[] = []
+    allConversions: {[index: string]: FileConversion[]} = {}
     conversions: FileConversion[] = []
 
+    selections: string[] = []
+    selection: string = ''
+
+    // Taken from https://github.com/microsoft/vscode-extension-samples/blob/main/tree-view-sample/src/nodeDependencies.ts
+    private _onDidChangeTreeData: vscode.EventEmitter<FileItem | undefined | void> = new vscode.EventEmitter<FileItem | undefined | void>();
+    readonly onDidChangeTreeData: vscode.Event<FileItem | undefined | void> = this._onDidChangeTreeData.event;
+
     constructor(private workspaceRoot: string) {
-        this.conversions = Object.values(this.validateConversions(vscode.workspace.getConfiguration('multiView.conversions')))[0]
+        this.allConversions = this.validateConversions(vscode.workspace.getConfiguration('multiView.conversions'))
+        this.selections = Object.keys(this.allConversions)
+        if (this.selections.length > 0) {
+            this.select(this.selections[0])
+        }
     }
+
+    select(selection: string) {
+        if (selection !== this.selection && this.selections.includes(selection)) {
+            this.selection = selection
+            this.conversions = this.allConversions[this.selection]
+        }
+    }
+
+    refresh() {
+        this.allConversions = this.validateConversions(vscode.workspace.getConfiguration('multiView.conversions'))
+        this.selections = Object.keys(this.allConversions)
+        this.conversions = this.allConversions[this.selection]
+        this._onDidChangeTreeData.fire()
+    }
+
+    getTreeItem(element: FileItem): vscode.TreeItem {
+        return element
+    }
+
+    getChildren(element?: FileItem): Thenable<FileItem[]> {
+        if (!this.workspaceRoot) {
+            vscode.window.showInformationMessage('Empty workspace means no multiview fo you!')
+            return Promise.resolve([])
+        }
+
+        let children: FileItem[]
+        if (!element) {
+            this.populateStructure(this.workspaceRoot)
+            children = this.newItems
+        } else {
+            children = element.children
+        }
+
+        return Promise.resolve(children)
+    }
+
+    // Private methods below 
 
     validateConversions(input: any) {
         let result: {[index: string]: FileConversion[]} = {}
@@ -46,29 +95,6 @@ export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
         }
         return result
     }
-
-    getTreeItem(element: FileItem): vscode.TreeItem {
-        return element
-    }
-
-    getChildren(element?: FileItem): Thenable<FileItem[]> {
-        if (!this.workspaceRoot) {
-            vscode.window.showInformationMessage('Empty workspace means no multiview fo you!')
-            return Promise.resolve([])
-        }
-
-        let children: FileItem[]
-        if (!element) {
-            this.populateStructure(this.workspaceRoot)
-            children = this.newItems
-        } else {
-            children = element.children
-        }
-
-        return Promise.resolve(children)
-    }
-
-    // Private methods below 
 
     applyConversions(origFlatFiles: string[], conversions: FileConversion[]): FileItem[] {
         let fileMap: any = {}
@@ -152,8 +178,6 @@ export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
         return result.sort()
     }
 
-
-   
 
 }
 

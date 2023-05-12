@@ -14,7 +14,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('multiview.helloWorld', () => {
+	let disposable = vscode.commands.registerCommand('multiView.helloWorld', () => {
 		// The code you place here will be executed every time your command is executed
 		// Display a message box to the user
 		vscode.window.showInformationMessage('Hello World from multiview!')
@@ -25,7 +25,28 @@ export function activate(context: vscode.ExtensionContext) {
 	// My new stuff
 	console.log('registering')
 	const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri?.fsPath || ''
-	vscode.window.registerTreeDataProvider('multiView', new MultiViewProvider(rootPath))
+	let multiViewProvider = new MultiViewProvider(rootPath)
+	vscode.window.registerTreeDataProvider('multiView', multiViewProvider)
+
+	context.subscriptions.push(vscode.commands.registerCommand('multiView.refresh', () => {
+		multiViewProvider.refresh()
+	}))
+
+	context.subscriptions.push(vscode.commands.registerCommand('multiView.selectCategory', () => {
+		const quickPick = vscode.window.createQuickPick()
+		quickPick.items = multiViewProvider.selections.map((selection) => {return {label: selection}})
+		quickPick.onDidChangeSelection((item) => {
+			let selection = item[0].label
+			console.log({selection})
+			multiViewProvider.select(selection)
+			multiViewProvider.refresh()
+			quickPick.hide()
+		})
+		quickPick.onDidHide(() => quickPick.dispose())
+		quickPick.show()
+	}))
+
+
 
 
 }

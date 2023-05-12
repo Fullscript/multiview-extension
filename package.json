@@ -2,7 +2,7 @@
   "name": "multiview",
   "displayName": "multiview",
   "description": "Multiple views of your codebase",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/TheDro/multiview-extension.git"
@@ -19,8 +19,17 @@
   "contributes": {
     "commands": [
       {
-        "command": "multiview.helloWorld",
+        "command": "multiView.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "multiView.refresh",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "multiView.selectCategory",
+        "title": "Select Category"
       }
     ],
     "configuration": {
@@ -34,6 +43,19 @@
           "default": {"adjacentSpecs": [["spec/(.*)", "app/$1"]]}
         }
       }
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "multiView.refresh",
+          "when": "view == multiView",
+          "group": "navigation"
+        },
+        {
+          "command": "multiView.selectCategory",
+          "when": "view == multiView"
+        }
+      ]
     },
     "views": {
       "explorer": [
