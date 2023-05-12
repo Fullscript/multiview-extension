@@ -46,6 +46,12 @@ Only the first named conversion is used.
 
 ## Release Notes
 
+### 0.2.0
+
+- Multiple conversion categories are now supported!
+- MultiView can now be refreshed
+- The category can be selected using quickPick
+
 ### 0.1.0
 
 Initial release of MultiView. Only a single conversion is supported.
