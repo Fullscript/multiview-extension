@@ -1,9 +1,7 @@
 import * as vscode from 'vscode'
 import * as fs from 'fs'
 import * as path from 'path'
-
-
-
+import ignore from 'ignore'
 
 
 export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
@@ -161,11 +159,19 @@ export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
         this.newItems = this.applyConversions(origFlatFiles, this.conversions)
     }
 
-    getFlatFiles(absoluteRoot: string, dir: string = ''): string[] {
+    getFlatFiles(absoluteRoot: string, dir: string = '', ignorer: any = null): string[] {
         let files = fs.readdirSync(path.join(absoluteRoot, dir))
+        if (files.includes('.demogitignore')) {
+            // TODO: need to merge ignorers
+            ignorer = this.getGitignorer(path.join(absoluteRoot, dir, '.demogitignore'))
+        }
         let result: string[] = []
         files.filter((fileName) => {
-            return fileName != 'node_modules' && fileName[0] != '.'
+            if (ignorer) {
+                return !ignorer.ignores(fileName)
+            } else {
+                return true
+            }
         }).forEach((fileName) => {
             let absolutePath = path.join(absoluteRoot, dir, fileName)
             let isDir = fs.statSync(absolutePath).isDirectory()
@@ -176,6 +182,16 @@ export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
             }
         })
         return result.sort()
+    }
+
+    getGitignorer(absolutePath: string): any { // Can't figure out the type for this
+        let contents = fs.readFileSync(absolutePath, 'utf8')
+        let lines = contents.split('\n').filter((line) => {
+            return line.length > 0 && line.trim()[0] != '#'
+        })
+        let gitIgnorer = ignore().add(lines)
+
+        return gitIgnorer  
     }
 
 

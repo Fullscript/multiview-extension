@@ -2,7 +2,7 @@
   "name": "multiview",
   "displayName": "multiview",
   "description": "Multiple views of your codebase",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/TheDro/multiview-extension.git"
@@ -13,8 +13,7 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [
-  ],
+  "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -40,7 +39,14 @@
           "title": "Conversions",
           "markdownDescription": "List of regular expressions for converting from one file system schema to another. Should be of the format:\n\n```json\n\"multiview.conversions\": {\n  \"<categoryName>\": [[\"<regex1>\", \"<replacement1>\"], [\"<regex2>\", \"<replacement2>\"], ...],\n  \"<otherCategoryName>\": [...]\n}\n// Example\n\"multiview.conversions\": {\n  \"adjacentSpecs\": [[\"spec/(.*)\", \"app/$1\"]],\n  \"componentize\": [\n    [\"src/views/(.*)\\\\.html\", \"src/components/$1/$1.html\"],\n    [\"src/styles/(.*)\\\\.css\", \"src/components/$1/$1.css\"],\n    [\"src/js/(.*)\\\\.js\", \"src/components/$1/$1.js\"]\n  ]\n}\n```",
           "type": "object",
-          "default": {"adjacentSpecs": [["spec/(.*)", "app/$1"]]}
+          "default": {
+            "adjacentSpecs": [
+              [
+                "spec/(.*)",
+                "app/$1"
+              ]
+            ]
+          }
         }
       }
     },
@@ -75,16 +81,19 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
-    "@types/vscode": "^1.75.0",
     "@types/glob": "^8.0.1",
     "@types/mocha": "^10.0.1",
     "@types/node": "16.x",
+    "@types/vscode": "^1.75.0",
     "@typescript-eslint/eslint-plugin": "^5.49.0",
     "@typescript-eslint/parser": "^5.49.0",
+    "@vscode/test-electron": "^2.2.2",
     "eslint": "^8.33.0",
     "glob": "^8.1.0",
     "mocha": "^10.1.0",
-    "typescript": "^4.9.4",
-    "@vscode/test-electron": "^2.2.2"
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "ignore": "^5.2.4"
   }
 }

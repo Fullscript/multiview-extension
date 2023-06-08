@@ -23,7 +23,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 
 	// My new stuff
-	console.log('registering')
+	console.log('registering2')
 	const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri?.fsPath || ''
 	let multiViewProvider = new MultiViewProvider(rootPath)
 	vscode.window.registerTreeDataProvider('multiView', multiViewProvider)
