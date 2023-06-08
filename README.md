@@ -32,9 +32,9 @@ This extension contributes the following settings:
   "adjacentSpecs": [["spec/(.*)", "app/$1"]],
   // Creates a folder for each html page with the matching css and js files
   "componentize": [
-    ["src/views/(.*)\\.html", "src/components/$1/$1.html"],
-    ["src/styles/(.*)\\.css", "src/components/$1/$1.css"],
-    ["src/js/(.*)\\.js", "src/components/$1/$1.js"]
+    ["html/(.*)\\.html", "components/$1/$1.html"],
+    ["css/(.*)\\.css", "components/$1/$1.css"],
+    ["js/(.*)\\.js", "components/$1/$1.js"]
   ]
 }
 ```
