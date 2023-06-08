@@ -1,6 +1,7 @@
 {
   "name": "multiview",
-  "displayName": "multiview",
+  "publisher": "Fullscript",
+  "displayName": "MultiView",
   "description": "Multiple views of your codebase",
   "version": "0.3.0",
   "repository": {
