@@ -1,0 +1,20 @@
+/* Set default line height and list styles */
+body {
+  line-height: 1;
+  list-style: none;
+}
+
+/* Remove default outline styles */
+:focus {
+    outline: 0;
+}
+
+/* Remove default background and border on some elements */
+blockquote, q {
+    quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+    content: '';
+    content: none;
+}
