@@ -47,6 +47,12 @@
               ]
             ]
           }
+        },
+        "multiView.ignorePath": {
+          "title": "Ignore File",
+          "markdownDescription": "Relative path to a file containing a list of files to ignore. Should follow the same format at `.gitignore` files.",
+          "type": "string",
+          "default": ".gitignore"
         }
       }
     },

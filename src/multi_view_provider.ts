@@ -155,16 +155,14 @@ export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
     }
 
     populateStructure(workspaceRoot: string) {
-        let origFlatFiles = this.getFlatFiles(workspaceRoot)
+        let gitignorePath: string = vscode.workspace.getConfiguration('multiView').get('ignorePath') || ''
+        let ignorer = this.getGitignorer(path.join(workspaceRoot, gitignorePath))
+        let origFlatFiles = this.getFlatFiles(workspaceRoot, '', ignorer)
         this.newItems = this.applyConversions(origFlatFiles, this.conversions)
     }
 
     getFlatFiles(absoluteRoot: string, dir: string = '', ignorer: any = null): string[] {
         let files = fs.readdirSync(path.join(absoluteRoot, dir))
-        if (files.includes('.demogitignore')) {
-            // TODO: need to merge ignorers
-            ignorer = this.getGitignorer(path.join(absoluteRoot, dir, '.demogitignore'))
-        }
         let result: string[] = []
         files.filter((fileName) => {
             if (ignorer) {
@@ -185,7 +183,13 @@ export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
     }
 
     getGitignorer(absolutePath: string): any { // Can't figure out the type for this
-        let contents = fs.readFileSync(absolutePath, 'utf8')
+        let contents: string
+        try {
+            contents = fs.readFileSync(absolutePath, 'utf8')
+        } catch (e) {
+            vscode.window.showWarningMessage(`Unable to read ignore file '${absolutePath}'`)
+            return null
+        }
         let lines = contents.split('\n').filter((line) => {
             return line.length > 0 && line.trim()[0] != '#'
         })
