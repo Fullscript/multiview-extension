@@ -17,17 +17,17 @@ For example:
 
 This extension contributes the following settings:
 
-* `multiview.conversions`: Named views with regular expression replacements to convert one file system "schema" to another. (See examples below)
+* `multiView.conversions`: Named views with regular expression replacements to convert one file system "schema" to another. (See examples below)
 
 
 ```js
 // Expected format
-"multiview.conversions": {
+"multiView.conversions": {
   "<categoryName>": [["<regex1>", "<replacement1>"], ["<regex2>", "<replacement2>"], ...],
   "<otherCategoryName>": [...]
 }
 // Example
-"multiview.conversions": {
+"multiView.conversions": {
   // Moves specs from the spec folder to the app folder
   "adjacentSpecs": [["spec/(.*)", "app/$1"]],
   // Creates a folder for each html page with the matching css and js files
@@ -42,9 +42,14 @@ This extension contributes the following settings:
 
 ## Known Issues
 
-Selecting a category is done using a QuickPick until we can create a dynamic menu
+- Selecting a category is done using a QuickPick until we can create a dynamic menu
+- Only one gitignore file can be used. Nested gitignore files are ignored.
 
 ## Release Notes
+
+### 0.3.0
+
+- A gitignore file can be specified to ignore files and folders from the output
 
 ### 0.2.0
 
