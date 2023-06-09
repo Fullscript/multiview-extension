@@ -1,10 +1,14 @@
 # MultiView
 
-This VS Code extension allows you to remap the files in your codebase, and show an alternative view without having to physically move the files. This can be useful to componentize your layered code or flatten your components to see all similar files in one place.
+This VS Code extension allows you to remap the files in your codebase, and show an alternative view without having to physically move the files. This can be useful to componentize your layered code, flatten your components to see all similar files in one place, hide files, and more.
 
 ## Features
 
-MultiView is configured with regular expression and replacement string pairs. You can configure multiple views, and each view can apply multiple replacements.
+- Configure MultiView with pairs of regular expressions and replacement strings. 
+- Save multiple views and name them.
+- Each view can apply multiple consecutive replacements.
+
+![demonstration of the extension in action](./multiview-demo.gif)
 
 <!-- TODO: add examples here -->
 
@@ -17,7 +21,8 @@ For example:
 
 This extension contributes the following settings:
 
-* `multiView.conversions`: Named views with regular expression replacements to convert one file system "schema" to another. (See examples below)
+- `multiView.conversions`: Named views with regular expression replacements to convert one file system "schema" to another. (See examples below)
+- `multiView.ignorePath`: Relative path to a file containing a list of files to ignore. Should follow the same format as `.gitignore` files.
 
 
 ```js
@@ -46,6 +51,10 @@ This extension contributes the following settings:
 - Only one gitignore file can be used. Nested gitignore files are ignored.
 
 ## Release Notes
+
+### 0.4.0
+
+- Cleaned up README, and added a demonstration gif.
 
 ### 0.3.0
 

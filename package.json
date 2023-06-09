@@ -2,8 +2,8 @@
   "name": "multiview",
   "publisher": "Fullscript",
   "displayName": "MultiView",
-  "description": "Multiple views of your codebase",
-  "version": "0.3.0",
+  "description": "Remap your codebase the way you like.",
+  "version": "0.4.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/TheDro/multiview-extension.git"
@@ -51,7 +51,7 @@
         },
         "multiView.ignorePath": {
           "title": "Ignore File",
-          "markdownDescription": "Relative path to a file containing a list of files to ignore. Should follow the same format at `.gitignore` files.",
+          "markdownDescription": "Relative path to a file containing a list of files to ignore. Should follow the same format as `.gitignore` files.",
           "type": "string",
           "default": ".gitignore"
         }
