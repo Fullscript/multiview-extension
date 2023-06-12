@@ -1,7 +1,8 @@
 import * as vscode from 'vscode'
 import * as fs from 'fs'
 import * as path from 'path'
-import ignore from 'ignore'
+import { getGitignorer } from './gitignorer'
+import { digSet } from './helpers'
 
 
 export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
@@ -108,7 +109,7 @@ export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
         })
 
         newFlatFiles.forEach(paths => {
-            this.digSet(fileMap, paths[1].split("/"), paths)
+            digSet(fileMap, paths[1].split("/"), paths)
         })
 
         let rootNode = new FileItem('', this.workspaceRoot, undefined, true)
@@ -143,20 +144,9 @@ export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
         return result
     }
 
-    digSet(obj: any, keys: string[], value: any) {
-        let key = keys.shift() || ''
-        if (keys.length == 0) {
-            obj[key] = value
-        } else {
-            let nextObj = obj[key] || {}
-            obj[key] = nextObj
-            this.digSet(nextObj, keys, value)
-        }
-    }
-
     populateStructure(workspaceRoot: string) {
         let gitignorePath: string = vscode.workspace.getConfiguration('multiView').get('ignorePath') || ''
-        let ignorer = this.getGitignorer(path.join(workspaceRoot, gitignorePath))
+        let ignorer = getGitignorer(path.join(workspaceRoot, gitignorePath))
         let origFlatFiles = this.getFlatFiles(workspaceRoot, '', ignorer)
         this.newItems = this.applyConversions(origFlatFiles, this.conversions)
     }
@@ -181,23 +171,6 @@ export class MultiViewProvider implements vscode.TreeDataProvider<FileItem> {
         })
         return result.sort()
     }
-
-    getGitignorer(absolutePath: string): any { // Can't figure out the type for this
-        let contents: string
-        try {
-            contents = fs.readFileSync(absolutePath, 'utf8')
-        } catch (e) {
-            vscode.window.showWarningMessage(`Unable to read ignore file '${absolutePath}'`)
-            return null
-        }
-        let lines = contents.split('\n').filter((line) => {
-            return line.length > 0 && line.trim()[0] != '#'
-        })
-        let gitIgnorer = ignore().add(lines)
-
-        return gitIgnorer  
-    }
-
 
 }
 

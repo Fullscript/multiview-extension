@@ -20,10 +20,6 @@
   "contributes": {
     "commands": [
       {
-        "command": "multiView.helloWorld",
-        "title": "Hello World"
-      },
-      {
         "command": "multiView.refresh",
         "title": "Refresh",
         "icon": "$(refresh)"
