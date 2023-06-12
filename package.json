@@ -3,8 +3,8 @@
   "publisher": "Fullscript",
   "displayName": "MultiView",
   "description": "Remap your codebase the way you like.",
-  "version": "0.5.1",
-  "logo": "logo/multiview-logo.png",
+  "version": "0.5.2",
+  "icon": "logo/multiview-logo.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/TheDro/multiview-extension.git"
